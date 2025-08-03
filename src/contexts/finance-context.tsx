@@ -1,7 +1,7 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useReducer, type ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useReducer, type ReactNode, useCallback, useState } from 'react';
 import type { FinancialData, Transaction, Bill, Goal, ChecklistItem } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';

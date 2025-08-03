@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
-import { addTransactionFromText } from "@/app/actions";
+import { addTransactionsFromText } from "@/app/actions";
 import { useFinance } from "@/contexts/finance-context";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,27 +20,29 @@ export function AITransactionForm() {
     if (!text.trim()) return;
 
     setIsLoading(true);
-    const result = await addTransactionFromText(text);
+    const result = await addTransactionsFromText(text);
     setIsLoading(false);
 
     if (result.success && result.data) {
-      addTransaction({
-        type: result.data.type,
-        amount: Math.abs(result.data.amount),
-        description: result.data.description,
-        category: result.data.category,
-        date: result.data.date,
+      result.data.forEach(transaction => {
+        addTransaction({
+            type: transaction.type,
+            amount: Math.abs(transaction.amount),
+            description: transaction.description,
+            category: transaction.category,
+            date: transaction.date,
+        });
       });
       toast({
         title: "Sucesso!",
-        description: "Transação adicionada com mágica.",
+        description: `${result.data.length} transação(ões) adicionada(s) com mágica.`,
       });
       setText("");
     } else {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: result.error || "Não foi possível adicionar a transação.",
+        description: result.error || "Não foi possível adicionar as transações.",
       });
     }
   };
@@ -48,7 +50,7 @@ export function AITransactionForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Textarea
-        placeholder="Ex: Gastei 50 reais no almoço de hoje com pizza"
+        placeholder="Ex: Gastei 50 no almoço, paguei a conta de luz de R$150, recebi 1000 do salário"
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}

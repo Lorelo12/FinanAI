@@ -1,8 +1,11 @@
+
 "use client";
 
 import { createContext, useContext, useEffect, useReducer, type ReactNode, useCallback } from 'react';
 import type { FinancialData, Transaction, Bill, Goal, ChecklistItem } from '@/lib/types';
 import { useAuth } from './auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 type Action =
   | { type: 'SET_STATE'; payload: FinancialData }
@@ -90,6 +93,7 @@ const LOCAL_STORAGE_KEY_PREFIX = 'finanai-data-';
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const { user, isGuest } = useAuth();
   const [state, dispatch] = useReducer(financeReducer, initialState);
+  const { toast } = useToast();
 
   const storageKey = useCallback(() => {
     if (user) return `${LOCAL_STORAGE_KEY_PREFIX}${user.uid}`;
@@ -103,7 +107,9 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       try {
         const storedData = localStorage.getItem(key);
         if (storedData) {
-          dispatch({ type: 'SET_STATE', payload: JSON.parse(storedData) });
+          const data = JSON.parse(storedData);
+          dispatch({ type: 'SET_STATE', payload: data });
+          checkUpcomingBills(data.bills);
         } else {
           dispatch({ type: 'SET_STATE', payload: initialState });
         }
@@ -124,6 +130,22 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [state, storageKey]);
+
+  const checkUpcomingBills = (bills: Bill[]) => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonthStr = format(today, 'yyyy-MM');
+
+    bills.forEach(bill => {
+      const isPaid = bill.paidForMonths.includes(currentMonthStr);
+      if (!isPaid && bill.dueDate === currentDay) {
+        toast({
+          title: "Lembrete de Pagamento",
+          description: `Sua conta "${bill.description}" vence hoje!`,
+        });
+      }
+    });
+  };
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: { ...transaction, id: crypto.randomUUID() } });

@@ -1,9 +1,11 @@
+
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 interface AuthContextType {
   user: User | null;
@@ -16,41 +18,40 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_ROUTES = ['/login'];
+const PUBLIC_ROUTES = ['/login']; // Defina aqui suas rotas públicas
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        setIsGuest(false);
-        if (AUTH_ROUTES.includes(pathname)) {
-          router.push('/');
-        }
-      } else {
-        setUser(null);
-        setIsGuest(true);
-        if (!AUTH_ROUTES.includes(pathname)) {
-          router.push('/login');
-        }
-      }
+      setUser(currentUser);
       setLoading(false);
     });
-
     return () => unsubscribe();
-  }, [pathname, router]);
+  }, []);
+  
+  useEffect(() => {
+    if (loading) return;
+
+    const isAuthRoute = AUTH_ROUTES.includes(pathname);
+    const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+
+    if (user && isAuthRoute) {
+      router.push('/');
+    } else if (!user && !isPublicRoute) {
+      router.push('/login');
+    }
+  }, [user, loading, pathname, router]);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       setLoading(true);
       await signInWithPopup(auth, provider);
-      // O onAuthStateChanged vai cuidar do redirecionamento
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       setLoading(false);
@@ -60,18 +61,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      // O onAuthStateChanged vai cuidar do redirecionamento
+      router.push('/login');
     } catch (error) {
       console.error("Error signing out: ", error);
     }
   };
   
+  const isGuest = !user;
   const value = { user, loading, isGuest, signInWithGoogle, logout };
 
   if (loading) {
       return (
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
         </div>
       )
   }

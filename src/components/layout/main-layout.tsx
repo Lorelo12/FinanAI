@@ -1,12 +1,13 @@
+
 "use client";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { BottomNav } from "./bottom-nav";
 import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { TopBar } from "./top-bar";
 
 const AUTH_ROUTES = ['/login', '/signup'];
 
@@ -30,13 +31,12 @@ export function MainLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <SidebarInset>
-        <div className={cn("min-h-screen", "pb-16")}>
-          {children}
-        </div>
-      </SidebarInset>
+    <div className="flex flex-col min-h-screen">
+      <TopBar />
+      <main className={cn("flex-1 pt-16 pb-16")}>
+        {children}
+      </main>
       <BottomNav />
-    </SidebarProvider>
+    </div>
   );
 }

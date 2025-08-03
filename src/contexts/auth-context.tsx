@@ -39,19 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-    if (user && isAuthRoute) {
-      router.push('/');
-    } else if (!user) {
-      setIsGuest(true);
-      if (!isAuthRoute) {
-          router.push('/login');
+    if (user) {
+      setIsGuest(false);
+      if (isAuthRoute) {
+        router.push('/');
       }
     } else {
-        setIsGuest(false);
+      setIsGuest(true);
+      if (!isAuthRoute) {
+        router.push('/login');
+      }
     }
   }, [user, loading, pathname, router]);
 
   const signInWithGoogle = async () => {
+    // Prevent sign-in attempts while the initial auth state is still loading.
+    if (loading) return; 
+
     const provider = new GoogleAuthProvider();
     try {
       setLoading(true);
@@ -60,7 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error signing in with Google: ", error);
       // Let the user know something went wrong.
-      // You might want to use a toast notification here.
       setLoading(false);
     }
   };
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
+      router.push('/login');
       // onAuthStateChanged will set user to null, triggering the effect to redirect to login
     } catch (error) {
       console.error("Error signing out: ", error);

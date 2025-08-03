@@ -1,9 +1,7 @@
 "use client";
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { SidebarNav } from "./sidebar-nav";
 import { BottomNav } from "./bottom-nav";
-import { useIsMobile } from "@/hooks/use-mobile";
 import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,7 +11,6 @@ import { cn } from "@/lib/utils";
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const isMobile = useIsMobile();
   const { user, loading, isGuest } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -34,13 +31,12 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      {!isMobile && <SidebarNav />}
       <SidebarInset>
-        <div className={cn("min-h-screen", isMobile ? "pb-16" : "")}>
+        <div className={cn("min-h-screen", "pb-16")}>
           {children}
         </div>
       </SidebarInset>
-      {isMobile && <BottomNav />}
+      <BottomNav />
     </SidebarProvider>
   );
 }

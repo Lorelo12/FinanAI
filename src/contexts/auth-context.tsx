@@ -1,8 +1,8 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword } from 'firebase/auth';
+import { createContext, useContext, useEffect, useState, type ReactNode} from 'react';
+import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -48,8 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/');
       }
     } else {
-      setIsGuest(true);
+      // Stay on login page if already there, otherwise redirect
       if (!isAuthRoute) {
+        setIsGuest(true); // Assume guest mode until login
         router.push('/login');
       }
     }
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const provider = new GoogleAuthProvider();
     try {
       setLoading(true);
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({
@@ -93,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
+      // Reset guest state and redirect to login
+      setIsGuest(true);
       router.push('/login');
     } catch (error: any) {
       console.error("Error signing out: ", error);
@@ -116,5 +119,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    

@@ -2,10 +2,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
 
@@ -19,6 +21,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function LoginPage() {
+  const router = useRouter();
   const { signInWithGoogle, signInWithEmailAndPassword, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +40,11 @@ export default function LoginPage() {
       setIsSubmitting(true);
       await signInWithGoogle();
       setIsSubmitting(false);
+  }
+
+  const handleGuestLogin = () => {
+      setIsSubmitting(false);
+ router.push("/");
   }
 
   const isLoading = loading || isSubmitting;
@@ -74,7 +82,7 @@ export default function LoginPage() {
               disabled={isLoading}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full mb-2" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Entrar com Email"}
           </Button>
          </form>
@@ -93,6 +101,11 @@ export default function LoginPage() {
             Google
         </Button>
       </CardContent>
+      <CardFooter className="flex justify-center">
+        <Button variant="link" onClick={() => router.push("/")} disabled={isLoading}>
+            Continuar como Convidado
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

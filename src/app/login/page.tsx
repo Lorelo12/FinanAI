@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import Link from 'next/link';
 
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
@@ -33,13 +34,13 @@ export default function LoginPage() {
     if (signInWithEmailAndPassword) {
       await signInWithEmailAndPassword(email, password);
     }
-    setIsSubmitting(false);
+    // Don't set isSubmitting to false here, as the context change will re-render or navigate away
   };
   
   const handleGoogleLogin = async () => {
       setIsSubmitting(true);
       await signInWithGoogle();
-      setIsSubmitting(false);
+      // Don't set isSubmitting to false here
   }
 
   const handleGuestLogin = () => {
@@ -82,10 +83,16 @@ export default function LoginPage() {
               disabled={isLoading}
             />
           </div>
-          <Button type="submit" className="w-full mb-2" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Entrar com Email"}
           </Button>
          </form>
+        <div className="mt-4 text-center text-sm">
+            Não tem uma conta?{" "}
+            <Link href="/signup" className="underline">
+              Cadastre-se
+            </Link>
+        </div>
          <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />

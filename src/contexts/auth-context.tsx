@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode} from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -15,12 +15,13 @@ interface AuthContextType {
   setIsGuest: (isGuest: boolean) => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
+  signUpWithEmailAndPassword: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_ROUTES = ['/login'];
+const AUTH_ROUTES = ['/login', '/signup'];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -94,13 +95,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signUpWithEmailAndPassword = async (name: string, email: string, password: string) => {
+    if (loading) return;
+    try {
+      setLoading(true);
+      const userCredential = await firebaseCreateUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      // Manually update the user state after profile update
+      setUser(auth.currentUser);
+    } catch (error: any) {
+      console.error("Error signing up with email: ", error);
+      toast({
+        variant: "destructive",
+        title: "Erro no Cadastro",
+        description: error.message || "Não foi possível criar a conta.",
+      });
+      setLoading(false);
+    }
+  }
+
 
   const logout = async () => {
     try {
       await signOut(auth);
       setIsGuest(false);
       router.push('/login');
-    } catch (error: any) {
+    } catch (error: any) => {
       console.error("Error signing out: ", error);
       toast({
         variant: "destructive",
@@ -110,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const value = { user, loading, isGuest, setIsGuest, signInWithGoogle, signInWithEmailAndPassword, logout };
+  const value = { user, loading, isGuest, setIsGuest, signInWithGoogle, signInWithEmailAndPassword, signUpWithEmailAndPassword, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

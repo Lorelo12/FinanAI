@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 const AUTH_ROUTES = ['/login', '/signup'];
 

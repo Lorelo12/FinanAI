@@ -16,8 +16,11 @@ export function ShoppingChecklist() {
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newItemText.trim()) {
-      addChecklistItem({ text: newItemText.trim() });
+    const items = newItemText.split(',').filter(item => item.trim() !== '');
+    if (items.length > 0) {
+      items.forEach(itemText => {
+        addChecklistItem({ text: itemText.trim() });
+      });
       setNewItemText("");
     }
   };
@@ -35,7 +38,7 @@ export function ShoppingChecklist() {
         <form onSubmit={handleAddItem} className="flex gap-2 mb-4">
           <Input
             type="text"
-            placeholder="Adicionar item..."
+            placeholder="Adicionar item(ns)..."
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
           />

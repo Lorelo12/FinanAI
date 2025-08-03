@@ -2,16 +2,18 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   isGuest: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -25,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isGuest, setIsGuest] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -53,32 +56,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const signInWithGoogle = async () => {
-    // Prevent sign-in attempts while the initial auth state is still loading.
     if (loading) return; 
 
     const provider = new GoogleAuthProvider();
     try {
       setLoading(true);
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle the user state update and redirect
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in with Google: ", error);
-      // Let the user know something went wrong.
+      toast({
+        variant: "destructive",
+        title: "Erro de Login",
+        description: error.message || "Não foi possível fazer login com o Google.",
+      });
       setLoading(false);
     }
   };
+
+  const signInWithEmailAndPassword = async (email: string, password: string) => {
+    if (loading) return;
+    try {
+      setLoading(true);
+      await firebaseSignInWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      console.error("Error signing in with email: ", error);
+       toast({
+        variant: "destructive",
+        title: "Erro de Login",
+        description: "Email ou senha inválidos.",
+      });
+      setLoading(false);
+    }
+  };
+
 
   const logout = async () => {
     try {
       await signOut(auth);
       router.push('/login');
-      // onAuthStateChanged will set user to null, triggering the effect to redirect to login
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing out: ", error);
+      toast({
+        variant: "destructive",
+        title: "Erro de Logout",
+        description: error.message || "Não foi possível fazer logout.",
+      });
     }
   };
   
-  const value = { user, loading, isGuest, signInWithGoogle, logout };
+  const value = { user, loading, isGuest, signInWithGoogle, signInWithEmailAndPassword, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -90,3 +116,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    

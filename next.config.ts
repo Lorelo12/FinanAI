@@ -21,3 +21,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+// Forcing a change to reload environment variables

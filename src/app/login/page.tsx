@@ -1,7 +1,10 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
@@ -16,8 +19,16 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function LoginPage() {
-  const { signInWithGoogle, loading } = useAuth();
-  
+  const { signInWithGoogle, signInWithEmailAndPassword, loading } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleEmailLogin = async () => {
+    if (signInWithEmailAndPassword) {
+      await signInWithEmailAndPassword(email, password);
+    }
+  };
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -28,6 +39,29 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Senha</Label>
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <Button type="submit" className="w-full" onClick={handleEmailLogin} disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Entrar com Email"}
+          </Button>
+          <div className="flex justify-between text-sm">
+            {/* Optional links for signup and password reset */}
+            {/* <Link href="/signup">Cadastrar</Link> */}
+            {/* <Link href="/forgot-password">Esqueceu a senha?</Link> */}
+          </div>
           <Button variant="outline" onClick={signInWithGoogle} disabled={loading}>
              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2" />}
             Entrar com Google
@@ -36,5 +70,5 @@ export default function LoginPage() {
       </CardContent>
     </Card>
   );
-}
+}\n
 

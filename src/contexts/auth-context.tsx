@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signOut(auth);
       setIsGuest(false);
       router.push('/login');
-    } catch (error: any) => {
+    } catch (error: any) {
       console.error("Error signing out: ", error);
       toast({
         variant: "destructive",

@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { TopBar } from "./top-bar";
 import { Loader2 } from "lucide-react";
 
 const AUTH_ROUTES = ['/login', '/signup'];
@@ -38,8 +37,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
   // If we have a user or are a guest, render the full app layout
   return (
     <div className="flex flex-col min-h-screen">
-      <TopBar />
-      <main className={cn("flex-1 pt-16 pb-16")}>
+      <main className={cn("flex-1 pb-16")}>
         {children}
       </main>
       <BottomNav />

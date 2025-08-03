@@ -47,10 +47,11 @@ export function TopBar() {
         </Button>
         
         {isGuest ? (
-           <Button asChild variant="ghost" size="icon">
-             <Link href="/login">
-               <LogIn className="h-5 w-5" />
-             </Link>
+            <Button asChild variant="outline">
+              <Link href="/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </Link>
            </Button>
         ) : user ? (
             <DropdownMenu>

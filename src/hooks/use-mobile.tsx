@@ -1,19 +1,17 @@
+
 "use client";
 
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
-
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = React.useState(true)
 
   React.useEffect(() => {
-    // We are forcing mobile view, so we can just return true.
     const onChange = () => {
       setIsMobile(true)
     }
     onChange();
   }, [])
 
-  return !!isMobile
+  return isMobile
 }

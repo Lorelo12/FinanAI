@@ -4,30 +4,35 @@
 import { BottomNav } from "./bottom-nav";
 import type { ReactNode } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { TopBar } from "./top-bar";
+import { Loader2 } from "lucide-react";
 
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export function MainLayout({ children }: { children: ReactNode }) {
   const { user, loading, isGuest } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!loading) {
-      const isAuthRoute = AUTH_ROUTES.includes(pathname);
-      if (user && !isGuest && isAuthRoute) {
-        router.push('/');
-      }
-    }
-  }, [user, loading, isGuest, pathname, router]);
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
+  if (isGuest && !AUTH_ROUTES.includes(pathname)) {
+      return null;
+  }
+
+  if (user && AUTH_ROUTES.includes(pathname)) {
+      return null;
+  }
 
   if (AUTH_ROUTES.includes(pathname)) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">{children}</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background p-4">{children}</div>;
   }
 
   return (

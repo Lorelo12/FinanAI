@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -22,9 +21,9 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Login</CardTitle>
+        <CardTitle className="text-2xl">FinanAI</CardTitle>
         <CardDescription>
-          Acesse sua conta para continuar no FinanAI.
+          Sua gestão financeira, simplificada com IA.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -33,14 +32,9 @@ export default function LoginPage() {
              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2" />}
             Entrar com Google
           </Button>
-          <div className="mt-4 text-center text-sm">
-            Ainda não tem conta?{" "}
-            <Link href="/" className="underline">
-              Continue como convidado
-            </Link>
-          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
+

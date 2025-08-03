@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Landmark, Target, ListChecks } from "lucide-react";
+import { LayoutDashboard, Landmark, Target, ListChecks, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -10,6 +10,7 @@ const menuItems = [
   { href: "/bills", label: "Contas", icon: Landmark },
   { href: "/goals", label: "Metas", icon: Target },
   { href: "/checklist", label: "Compras", icon: ListChecks },
+  { href: "/settings", label: "Ajustes", icon: Settings },
 ];
 
 export function BottomNav() {
@@ -17,7 +18,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t">
-      <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+      <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
         {menuItems.map((item) => (
           <Link
             key={item.href}

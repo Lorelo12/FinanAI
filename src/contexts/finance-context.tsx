@@ -6,9 +6,13 @@ import type { FinancialData, Transaction, Bill, Goal, ChecklistItem } from '@/li
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
 
 type Action =
   | { type: 'SET_STATE'; payload: FinancialData }
+  | { type: 'RESET_STATE' }
   | { type: 'ADD_TRANSACTION'; payload: Transaction }
   | { type: 'ADD_BILL'; payload: Bill }
   | { type: 'PAY_BILL'; payload: { billId: string; month: string } }
@@ -21,7 +25,6 @@ type Action =
 
 interface FinanceContextType {
   state: FinancialData;
-  dispatch: React.Dispatch<Action>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   addBill: (bill: Omit<Bill, 'id' | 'paidForMonths'>) => void;
   payBill: (billId: string, month: string) => void;
@@ -30,6 +33,8 @@ interface FinanceContextType {
   addChecklistItem: (item: Omit<ChecklistItem, 'id' | 'completed'>) => void;
   updateChecklistItem: (item: ChecklistItem) => void;
   deleteChecklistItem: (id: string) => void;
+  resetAllData: () => Promise<void>;
+  loading: boolean;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -45,6 +50,8 @@ function financeReducer(state: FinancialData, action: Action): FinancialData {
   switch (action.type) {
     case 'SET_STATE':
       return action.payload;
+    case 'RESET_STATE':
+      return initialState;
     case 'ADD_TRANSACTION':
       return { ...state, transactions: [action.payload, ...state.transactions] };
     case 'ADD_BILL':
@@ -88,48 +95,13 @@ function financeReducer(state: FinancialData, action: Action): FinancialData {
   }
 }
 
-const LOCAL_STORAGE_KEY_PREFIX = 'finanai-data-';
+const LOCAL_STORAGE_GUEST_KEY = 'finanai-data-guest';
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const { user, isGuest } = useAuth();
   const [state, dispatch] = useReducer(financeReducer, initialState);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const storageKey = useCallback(() => {
-    if (user) return `${LOCAL_STORAGE_KEY_PREFIX}${user.uid}`;
-    if (isGuest) return `${LOCAL_STORAGE_KEY_PREFIX}guest`;
-    return null;
-  }, [user, isGuest]);
-
-  useEffect(() => {
-    const key = storageKey();
-    if (key) {
-      try {
-        const storedData = localStorage.getItem(key);
-        if (storedData) {
-          const data = JSON.parse(storedData);
-          dispatch({ type: 'SET_STATE', payload: data });
-          checkUpcomingBills(data.bills);
-        } else {
-          dispatch({ type: 'SET_STATE', payload: initialState });
-        }
-      } catch (error) {
-        console.error("Failed to read from local storage", error);
-        dispatch({ type: 'SET_STATE', payload: initialState });
-      }
-    }
-  }, [storageKey]);
-
-  useEffect(() => {
-    const key = storageKey();
-    if (key) {
-      try {
-        localStorage.setItem(key, JSON.stringify(state));
-      } catch (error) {
-        console.error("Failed to write to local storage", error);
-      }
-    }
-  }, [state, storageKey]);
 
   const checkUpcomingBills = (bills: Bill[]) => {
     const today = new Date();
@@ -146,6 +118,74 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       }
     });
   };
+  
+  // Load data
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      if (user) {
+        // User is logged in, load from Firestore
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data() as FinancialData;
+          dispatch({ type: 'SET_STATE', payload: data });
+          checkUpcomingBills(data.bills);
+        } else {
+          // No data for this user in Firestore yet
+          dispatch({ type: 'SET_STATE', payload: initialState });
+        }
+      } else if (isGuest) {
+        // User is a guest, load from localStorage
+        try {
+            const storedData = localStorage.getItem(LOCAL_STORAGE_GUEST_KEY);
+            if (storedData) {
+                const data = JSON.parse(storedData);
+                dispatch({ type: 'SET_STATE', payload: data });
+                checkUpcomingBills(data.bills);
+            } else {
+                dispatch({ type: 'SET_STATE', payload: initialState });
+            }
+        } catch (error) {
+            console.error("Failed to read from local storage", error);
+            dispatch({ type: 'SET_STATE', payload: initialState });
+        }
+      } else {
+        // No user or guest, do nothing
+        dispatch({ type: 'SET_STATE', payload: initialState });
+      }
+      setLoading(false);
+    }
+    loadData();
+  }, [user, isGuest]);
+  
+  // Save data
+  useEffect(() => {
+    async function saveData() {
+      // Don't save if it's the initial state or still loading
+      if (loading) return;
+
+      if (user) {
+        // User is logged in, save to Firestore
+        try {
+          const docRef = doc(db, "users", user.uid);
+          await setDoc(docRef, state);
+        } catch (error) {
+           console.error("Error saving data to Firestore:", error);
+           toast({ variant: 'destructive', title: 'Erro ao Salvar', description: 'Não foi possível salvar seus dados na nuvem.' });
+        }
+      } else if (isGuest) {
+        // User is a guest, save to localStorage
+         try {
+            localStorage.setItem(LOCAL_STORAGE_GUEST_KEY, JSON.stringify(state));
+         } catch (error) {
+            console.error("Failed to write to local storage", error);
+         }
+      }
+    }
+    saveData();
+  }, [state, user, isGuest, loading, toast]);
+
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: { ...transaction, id: crypto.randomUUID() } });
@@ -199,7 +239,20 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'DELETE_CHECKLIST_ITEM', payload: id });
   };
 
-  const value = { state, dispatch, addTransaction, addBill, payBill, addGoal, addToGoal, addChecklistItem, updateChecklistItem, deleteChecklistItem };
+  const resetAllData = async () => {
+    if (user) {
+        // For a logged-in user, clear the document in Firestore
+        const docRef = doc(db, 'users', user.uid);
+        await setDoc(docRef, initialState); // Overwrite with initial state
+    } else if (isGuest) {
+        // For a guest user, clear local storage
+        localStorage.removeItem(LOCAL_STORAGE_GUEST_KEY);
+    }
+    dispatch({ type: 'RESET_STATE' });
+    toast({ title: 'Sucesso!', description: 'Todos os seus dados foram apagados.' });
+  };
+
+  const value = { state, addTransaction, addBill, payBill, addGoal, addToGoal, addChecklistItem, updateChecklistItem, deleteChecklistItem, resetAllData, loading };
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;
 }

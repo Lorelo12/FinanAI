@@ -12,8 +12,10 @@ import { Loader2 } from "lucide-react";
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isGuest } = useAuth();
   const pathname = usePathname();
+  
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   if (loading) {
     return (
@@ -23,21 +25,17 @@ export function MainLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const isAuthRoute = AUTH_ROUTES.includes(pathname);
-
-  // If we are on an auth route, just render the children in a centered layout.
-  // This is for the login page.
+  // If on an auth route, show the centered login/signup form
   if (isAuthRoute) {
     return <div className="min-h-screen flex items-center justify-center bg-background p-4">{children}</div>;
   }
   
-  // If there is no user and we are not on an auth route, we shouldn't render anything.
-  // The AuthProvider will handle the redirect.
-  if (!user) {
+  // If not logged in and not a guest, don't render children (auth context will redirect)
+  if (!user && !isGuest) {
       return null;
   }
 
-  // If we have a user and are not on an auth route, render the full app layout.
+  // If we have a user or are a guest, render the full app layout
   return (
     <div className="flex flex-col min-h-screen">
       <TopBar />

@@ -22,7 +22,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmailAndPassword, loading } = useAuth();
+  const { signInWithGoogle, signInWithEmailAndPassword, loading, setIsGuest } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,8 +43,8 @@ export default function LoginPage() {
   }
 
   const handleGuestLogin = () => {
-      setIsSubmitting(false);
- router.push("/");
+    setIsGuest(true);
+    router.push("/");
   }
 
   const isLoading = loading || isSubmitting;
@@ -102,7 +102,7 @@ export default function LoginPage() {
         </Button>
       </CardContent>
       <CardFooter className="flex justify-center">
-        <Button variant="link" onClick={() => router.push("/")} disabled={isLoading}>
+        <Button variant="link" onClick={handleGuestLogin} disabled={isLoading}>
             Continuar como Convidado
         </Button>
       </CardFooter>

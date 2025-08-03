@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isGuest: boolean;
+  setIsGuest: (isGuest: boolean) => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmailAndPassword: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -32,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        setIsGuest(false);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -42,19 +46,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-    if (user) {
-      setIsGuest(false);
-      if (isAuthRoute) {
+    // If user is logged in, and on an auth route, redirect to home
+    if (user && isAuthRoute) {
         router.push('/');
-      }
-    } else {
-      // Stay on login page if already there, otherwise redirect
-      if (!isAuthRoute) {
-        setIsGuest(true); // Assume guest mode until login
-        router.push('/login');
-      }
+        return;
     }
-  }, [user, loading, pathname, router]);
+    
+    // If no user and not a guest, and not on an auth route, redirect to login
+    if (!user && !isGuest && !isAuthRoute) {
+        router.push('/login');
+        return;
+    }
+
+  }, [user, isGuest, loading, pathname, router]);
 
   const signInWithGoogle = async () => {
     if (loading) return; 
@@ -94,8 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      // Reset guest state and redirect to login
-      setIsGuest(true);
+      setIsGuest(false);
       router.push('/login');
     } catch (error: any) {
       console.error("Error signing out: ", error);
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const value = { user, loading, isGuest, signInWithGoogle, signInWithEmailAndPassword, logout };
+  const value = { user, loading, isGuest, setIsGuest, signInWithGoogle, signInWithEmailAndPassword, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

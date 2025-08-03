@@ -18,11 +18,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_ROUTES = ['/login'];
-const PUBLIC_ROUTES = ['/login']; // Defina aqui suas rotas públicas
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -33,17 +33,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => unsubscribe();
   }, []);
-  
+
   useEffect(() => {
     if (loading) return;
 
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
-    const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
     if (user && isAuthRoute) {
       router.push('/');
-    } else if (!user && !isPublicRoute) {
-      router.push('/login');
+    } else if (!user) {
+      setIsGuest(true);
+      if (!isAuthRoute) {
+          router.push('/login');
+      }
+    } else {
+        setIsGuest(false);
     }
   }, [user, loading, pathname, router]);
 
@@ -52,8 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle the user state update and redirect
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      // Let the user know something went wrong.
+      // You might want to use a toast notification here.
       setLoading(false);
     }
   };
@@ -61,22 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      router.push('/login');
+      // onAuthStateChanged will set user to null, triggering the effect to redirect to login
     } catch (error) {
       console.error("Error signing out: ", error);
     }
   };
   
-  const isGuest = !user;
   const value = { user, loading, isGuest, signInWithGoogle, logout };
-
-  if (loading) {
-      return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-      )
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

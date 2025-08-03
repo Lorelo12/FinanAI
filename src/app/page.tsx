@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useFinance } from '@/contexts/finance-context';
@@ -12,7 +13,7 @@ import { useAuth } from '@/contexts/auth-context';
 
 export default function DashboardPage() {
   const { state } = useFinance();
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
 
   const { income, expenses, balance } = useMemo(() => {
     const income = state.transactions
@@ -26,10 +27,9 @@ export default function DashboardPage() {
   }, [state.transactions]);
   
   const welcomeMessage = useMemo(() => {
-    if (isGuest) return "Bem-vindo, Convidado!";
     if (user?.displayName) return `Bem-vindo, ${user.displayName.split(' ')[0]}!`;
     return "Bem-vindo!";
-  }, [user, isGuest]);
+  }, [user]);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">

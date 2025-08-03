@@ -1,45 +1,40 @@
 
 "use server";
 
-import { extractTransactionDetails, ExtractTransactionDetailsOutput } from '@/ai/flows/extract-transaction-details';
-import { classifyTransactionType } from '@/ai/flows/classify-transaction-type';
 import { revalidatePath } from 'next/cache';
+import { extractBillOrTransactionDetails, ExtractBillOrTransactionDetailsOutput } from '@/ai/flows/extract-bill-or-transaction-details';
 
-export type AITransactionData = ExtractTransactionDetailsOutput & { type: 'income' | 'expense' };
+export type AIResponseData = ExtractBillOrTransactionDetailsOutput;
 
-export async function addTransactionsFromText(text: string): Promise<{ success: boolean; data?: AITransactionData[], error?: string }> {
+export async function addFromText(text: string): Promise<{ success: boolean; data?: AIResponseData[], error?: string }> {
   if (!text) {
     return { success: false, error: 'Input text cannot be empty.' };
   }
   
-  const transactionTexts = text.split(/[,.e;\n]/).filter(t => t.trim().length > 2);
+  const phrases = text.split(/[,.e;\n]/).filter(t => t.trim().length > 2);
 
-  if (transactionTexts.length === 0) {
-    return { success: false, error: 'No valid transaction phrases found.' };
+  if (phrases.length === 0) {
+    return { success: false, error: 'No valid phrases found.' };
   }
 
   try {
-    const transactionPromises = transactionTexts.map(async (transactionText) => {
-      const [details, classification] = await Promise.all([
-        extractTransactionDetails({ text: transactionText }),
-        classifyTransactionType({ text: transactionText }),
-      ]);
-      
-      const transactionData: AITransactionData = {
-        ...details,
-        type: classification.type,
-      };
-      return transactionData;
+    const promises = phrases.map(async (phrase) => {
+      const details = await extractBillOrTransactionDetails({ text: phrase });
+      return details;
     });
 
-    const transactionsData = await Promise.all(transactionPromises);
+    const results = await Promise.all(promises);
+    
+    // For now, we assume revalidating everything is fine.
+    // In a more complex app, we might want to be more specific.
+    revalidatePath('/'); 
+    revalidatePath('/bills');
 
-    revalidatePath('/'); // Revalidate dashboard page
-    return { success: true, data: transactionsData };
+    return { success: true, data: results };
 
   } catch (error) {
-    console.error("Error in addTransactionsFromText server action:", error);
-    let errorMessage = 'Failed to extract transaction details.';
+    console.error("Error in addFromText server action:", error);
+    let errorMessage = 'Failed to process text.';
     if (error instanceof Error) {
         errorMessage = error.message;
     }

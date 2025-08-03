@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -55,15 +56,16 @@ export function SidebarNav() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  tooltip={item.label}
-                >
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
                   <item.icon />
                   <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -71,7 +73,7 @@ export function SidebarNav() {
              <SidebarGroup className="mt-4">
                 <div className="p-4 bg-accent/20 border border-accent/30 rounded-lg text-center">
                     <p className="text-sm mb-2">Você está no modo convidado.</p>
-                    <Link href="/login" passHref>
+                    <Link href="/login">
                         <Button size="sm">Criar conta</Button>
                     </Link>
                     <p className="text-xs text-muted-foreground mt-2">Salve seus dados na nuvem.</p>
@@ -107,11 +109,11 @@ export function SidebarNav() {
                 <LogOut />
               </Button>
             ) : (
-              <Link href="/login" passHref>
-                <Button variant="ghost" size="icon" disabled={loading}>
+              <Button asChild variant="ghost" size="icon" disabled={loading}>
+                <Link href="/login">
                   <LogIn />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             )}
         </div>
       </SidebarFooter>

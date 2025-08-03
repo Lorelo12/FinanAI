@@ -11,6 +11,7 @@ export async function addFromText(text: string): Promise<{ success: boolean; dat
     return { success: false, error: 'Input text cannot be empty.' };
   }
   
+  // Split by common delimiters like comma, period, 'and' (e), semicolon, or newline.
   const phrases = text.split(/[,.e;\n]/).filter(t => t.trim().length > 2);
 
   if (phrases.length === 0) {

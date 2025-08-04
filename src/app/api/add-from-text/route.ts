@@ -12,14 +12,14 @@ export async function POST(request: Request) {
 
     const details = await extractBillOrTransactionDetails({ text });
     
-    if (!details || !details.entries || details.entries.length === 0) {
-      return NextResponse.json({ success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' }, { status: 400 });
+    if (!details || !details.entries) {
+      return NextResponse.json({ success: false, error: 'Não foi possível extrair detalhes do texto.' }, { status: 500 });
     }
 
     const validEntries = details.entries.filter(entry => entry.type !== 'invalid');
 
     if (validEntries.length === 0) {
-      return NextResponse.json({ success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto. Tente ser mais específico.' }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, data: validEntries });

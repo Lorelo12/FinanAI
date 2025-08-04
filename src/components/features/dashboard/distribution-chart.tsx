@@ -1,3 +1,4 @@
+
 "use client";
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
@@ -14,6 +15,10 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  if (percent === 0) {
+    return null;
+  }
+
   return (
     <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
       {`${(percent * 100).toFixed(0)}%`}
@@ -26,13 +31,13 @@ export function DistributionChart({ income, expenses }: DistributionChartProps) 
   const { theme } = useTheme();
   
   const data = [
-    { name: "Receitas", value: income > 0 ? income : 0 },
-    { name: "Despesas", value: expenses > 0 ? expenses : 0 },
+    { name: "Receitas", value: income },
+    { name: "Despesas", value: expenses },
   ];
 
   const COLORS = ["#10B981", "#EF4444"]; // Green for income, Red for expenses
 
-  if (income === 0 && expenses === 0) {
+  if (income <= 0 && expenses <= 0) {
     return (
         <div className="h-[250px] flex items-center justify-center text-muted-foreground">
             Sem dados para exibir o gráfico.

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useEffect, useReducer, useState, type ReactNode, useCallback } from 'react';
@@ -117,12 +116,12 @@ const FinanceContext = createContext<FinanceContextProps | undefined>(undefined)
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(financeReducer, initialState);
-  const [loading, setLoading] = useState(true);
-  const { user, isGuest } = useAuth();
+  const [financeLoading, setFinanceLoading] = useState(true);
+  const { user, isGuest, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const saveData = useCallback(async (data: FinancialData) => {
-    if (!user || isGuest) return;
+    if (authLoading || !user || isGuest) return;
     try {
       await setDoc(doc(db, 'users', user.uid), data, { merge: true });
     } catch (error) {
@@ -133,11 +132,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
     }
-  }, [user, isGuest, toast]);
+  }, [user, isGuest, toast, authLoading]);
 
    useEffect(() => {
+    if (authLoading) return;
     if (user && !isGuest) {
-      setLoading(true);
+      setFinanceLoading(true);
       const docRef = doc(db, 'users', user.uid);
       const unsubscribe = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -154,7 +154,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           setDoc(docRef, initialState);
           dispatch({ type: 'SET_STATE', payload: initialState });
         }
-        setLoading(false);
+        setFinanceLoading(false);
       }, (error) => {
         console.error("Error fetching user data:", error);
         toast({
@@ -162,20 +162,20 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           description: "Não foi possível carregar seus dados financeiros.",
           variant: "destructive",
         });
-        setLoading(false);
+        setFinanceLoading(false);
       });
       return () => unsubscribe();
     } else {
       dispatch({ type: 'RESET_STATE' });
-      setLoading(false);
+      setFinanceLoading(false);
     }
-  }, [user, isGuest, toast]);
+  }, [user, isGuest, toast, authLoading]);
 
   useEffect(() => {
-    if (!loading && state !== initialState) {
+    if (!financeLoading && state !== initialState) {
       saveData(state);
     }
-  }, [state, loading, saveData]);
+  }, [state, financeLoading, saveData]);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
@@ -214,7 +214,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   };
 
   const resetAllData = async () => {
-    if (!user || isGuest) return;
+    if (authLoading || !user || isGuest) return;
     dispatch({ type: 'RESET_STATE' });
     // This will trigger the useEffect to save the empty state
   }
@@ -222,7 +222,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   return (
     <FinanceContext.Provider value={{
       state,
-      loading,
+      loading: financeLoading || authLoading,
       addTransaction,
       addBill,
       payBill,

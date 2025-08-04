@@ -16,10 +16,9 @@ export function AITransactionForm() {
   const { addTransaction, addBill } = useFinance();
   const { toast } = useToast();
 
-  const processResult = (result: AIResponseData) => {
+  const processResult = (result: AIResponseData[number]) => {
     if (result.type === 'transaction') {
       if (!result.amount || !result.description || !result.category || !result.date || !result.transactionType) {
-        // Silently ignore incomplete data for now, or you can decide to show a specific error
         console.warn(`Dados incompletos para transação, pulando: ${result.description}`);
         return;
       }
@@ -32,7 +31,6 @@ export function AITransactionForm() {
       });
     } else if (result.type === 'bill') {
         if (!result.description || !result.dueDate || !result.amount) {
-           // Silently ignore incomplete data for now
            console.warn(`Dados incompletos para conta, pulando: ${result.description}`);
            return;
         }
@@ -42,7 +40,6 @@ export function AITransactionForm() {
             dueDate: result.dueDate,
         });
     }
-    // 'invalid' type is ignored by default
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +77,7 @@ export function AITransactionForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Textarea
-        placeholder="Ex: Gastei 50 no almoço, ou, conta de luz R$150 todo dia 10"
+        placeholder="Ex: Gastei 50 no almoço, paguei a conta de luz R$150 que vence todo dia 10."
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}

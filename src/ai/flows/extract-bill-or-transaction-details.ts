@@ -15,15 +15,15 @@ import {z} from 'genkit';
 const ExtractBillOrTransactionDetailsInputSchema = z.object({
   text: z
     .string()
-    .describe('The natural language text describing the transaction or bill.'),
+    .describe('The natural language text describing one or more transactions or bills.'),
 });
 
 export type ExtractBillOrTransactionDetailsInput = z.infer<
   typeof ExtractBillOrTransactionDetailsInputSchema
 >;
 
-const ExtractBillOrTransactionDetailsOutputSchema = z.object({
-  type: z
+const EntrySchema = z.object({
+    type: z
     .enum(['transaction', 'bill', 'invalid'])
     .describe('The type of entry: a one-time transaction, a recurring bill, or an invalid entry.'),
   amount: z
@@ -57,6 +57,11 @@ const ExtractBillOrTransactionDetailsOutputSchema = z.object({
     ),
 });
 
+const ExtractBillOrTransactionDetailsOutputSchema = z.object({
+    entries: z.array(EntrySchema).describe("A list of all transactions and bills found in the text.")
+});
+
+
 export type ExtractBillOrTransactionDetailsOutput = z.infer<
   typeof ExtractBillOrTransactionDetailsOutputSchema
 >;
@@ -71,7 +76,9 @@ const prompt = ai.definePrompt({
   name: 'extractBillOrTransactionDetailsPrompt',
   input: {schema: ExtractBillOrTransactionDetailsInputSchema},
   output: {schema: ExtractBillOrTransactionDetailsOutputSchema},
-  prompt: `You are a financial assistant. Your task is to analyze the user's text and determine if they are logging a one-time transaction or setting up a recurring monthly bill. The text is in Portuguese.
+  prompt: `You are a financial assistant. Your task is to analyze the user's text and extract all one-time transactions and/or recurring monthly bills. The text is in Portuguese. The user can provide multiple entries in a single text, separated by commas, newlines, or conjunctions like 'e'.
+
+For each item found in the text, create an entry in the 'entries' array with the following rules:
 
 - If the text describes a recurring payment (e.g., "conta de luz todo dia 10", "aluguel vence dia 5", "internet R$99,90 todo dia 15"), set the type to "bill".
   - For bills, you must extract:
@@ -85,11 +92,11 @@ const prompt = ai.definePrompt({
     - 'date': The date it occurred (use today's date if not specified, format YYYY-MM-DD).
     - 'category': A suitable category (e.g., food, salary, bills).
     - 'transactionType': Classify as 'income' or 'expense'.
-- If the text does not appear to be a valid transaction or bill (e.g., is just a greeting or random words), set the type to "invalid".
+- If a specific phrase or part of the text does not appear to be a valid transaction or bill (e.g., is just a greeting or random words), set its type to "invalid".
 
 Analyze the following text: {{{text}}}
 
-Return the information in the specified JSON format.
+Return a JSON object containing a list of all extracted entries in the "entries" field.
 `,
   config: {
     model: 'googleai/gemini-2.5-flash',

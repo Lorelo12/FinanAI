@@ -108,7 +108,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Seção de Dados */}
-                {!isGuest && (
+                {!isGuest && user && (
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold text-destructive">Zona de Perigo</h3>
                         <Separator />

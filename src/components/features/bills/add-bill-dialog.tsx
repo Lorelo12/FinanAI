@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   description: z.string().min(2, { message: "A descrição é obrigatória." }),
   amount: z.coerce.number().positive({ message: "O valor deve ser positivo." }),
-  dueDate: z.coerce.number().min(1).max(31, { message: "O dia deve ser entre 1 e 31." }),
+  dueDate: z.coerce.number().int().min(1, { message: "O dia deve ser no mínimo 1." }).max(31, { message: "O dia deve ser no máximo 31." }),
 });
 
 export function AddBillDialog() {

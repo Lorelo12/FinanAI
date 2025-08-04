@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
     const details = await extractBillOrTransactionDetails({ text });
     
-    if (!details.entries || details.entries.length === 0) {
+    if (!details || !details.entries || details.entries.length === 0) {
       return NextResponse.json({ success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' }, { status: 400 });
     }
 

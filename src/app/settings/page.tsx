@@ -14,12 +14,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useFinance } from "@/contexts/finance-context";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 
 export default function SettingsPage() {
     const { resetAllData } = useFinance();
+    const { setTheme, theme } = useTheme();
     const [isResetting, setIsResetting] = useState(false);
 
     const handleReset = async () => {
@@ -36,6 +40,31 @@ export default function SettingsPage() {
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <h2 className="text-3xl font-bold tracking-tight">Configurações</h2>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Tema</CardTitle>
+                    <CardDescription>
+                        Selecione o tema de sua preferência para o aplicativo.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={theme} onValueChange={setTheme}>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="light" id="light" />
+                            <Label htmlFor="light">Claro</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="dark" id="dark" />
+                            <Label htmlFor="dark">Escuro</Label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="system" id="system" />
+                            <Label htmlFor="system">Padrão do Sistema</Label>
+                        </div>
+                    </RadioGroup>
+                </CardContent>
+            </Card>
             
             <Card className="border-destructive">
                 <CardHeader>

@@ -22,7 +22,6 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth-context";
-import Link from "next/link";
 
 export default function SettingsPage() {
     const { state, resetAllData, toggleChartVisibility } = useFinance();

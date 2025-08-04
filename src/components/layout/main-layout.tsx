@@ -20,10 +20,13 @@ export function MainLayout({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
-  const isAuthRoute = AUTH_ROUTES.includes(pathname);
-  const loading = !isClient || authLoading;
+  if (!isClient) {
+    return null;
+  }
 
-  if (loading) {
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+  if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -31,17 +34,18 @@ export function MainLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // If on an auth route, show the centered login/signup form
   if (isAuthRoute) {
     return <div className="min-h-screen flex items-center justify-center bg-background p-4">{children}</div>;
   }
   
-  // If not logged in and not a guest, don't render children (auth context will redirect)
   if (!user && !isGuest) {
-      return null;
+      return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+      );
   }
 
-  // If we have a user or are a guest, render the full app layout
   return (
     <div className="flex flex-col min-h-screen">
       <main className={cn("flex-1 pb-16")}>

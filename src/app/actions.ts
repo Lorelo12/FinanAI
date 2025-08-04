@@ -14,14 +14,16 @@ export async function addFromText(text: string): Promise<{ success: boolean; dat
   // Split by common delimiters like comma, semicolon, or newline.
   const phrases = text.split(/[,;\n]/).filter(t => t.trim().length > 2);
 
-  if (phrases.length === 0) {
-    // If splitting doesn't yield multiple phrases, treat the whole text as one.
-    phrases.push(text);
+  // If splitting doesn't yield multiple phrases, treat the whole text as one,
+  // as long as the original text is not just whitespace.
+  if (phrases.length === 0 && text.trim().length > 2) {
+    phrases.push(text.trim());
   }
 
   try {
     const promises = phrases.map(async (phrase) => {
-      if (phrase.trim().length < 3) return null; // Ignore very short phrases
+      // Ignore very short phrases again after potential push
+      if (phrase.trim().length < 3) return null; 
       const details = await extractBillOrTransactionDetails({ text: phrase });
       return details;
     });

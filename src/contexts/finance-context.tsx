@@ -165,7 +165,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         setFinanceLoading(false);
       });
       return () => unsubscribe();
-    } else {
+    } else if (!user && !authLoading) {
       dispatch({ type: 'RESET_STATE' });
       setFinanceLoading(false);
     }

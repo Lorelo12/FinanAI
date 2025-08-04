@@ -1,4 +1,4 @@
-package com.example.nextn;
+package com.suaempresa.nextn;
 
 import com.getcapacitor.BridgeActivity;
 

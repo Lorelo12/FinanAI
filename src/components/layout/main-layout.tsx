@@ -7,14 +7,21 @@ import { useAuth } from "@/contexts/auth-context";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const { user, loading, isGuest } = useAuth();
+  const { user, loading: authLoading, isGuest } = useAuth();
   const pathname = usePathname();
-  
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  const loading = !isClient || authLoading;
 
   if (loading) {
     return (

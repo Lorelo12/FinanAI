@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "android:sync": "npm i && npm run build && npx cap add android && npx cap sync android"
+    "android:sync": "npm run build && npx cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

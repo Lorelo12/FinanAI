@@ -26,7 +26,7 @@ export function ShoppingChecklist() {
   };
 
   const handleToggleItem = (id: string, completed: boolean) => {
-    const item = state.checklistItems.find((i) => i.id === id);
+    const item = state.checklist.find((i) => i.id === id);
     if (item) {
       updateChecklistItem({ ...item, completed });
     }
@@ -48,10 +48,10 @@ export function ShoppingChecklist() {
           </Button>
         </form>
         <div className="space-y-2">
-          {state.checklistItems.length === 0 ? (
+          {state.checklist.length === 0 ? (
              <p className="text-center text-muted-foreground pt-4">Sua lista de compras está vazia.</p>
           ) : (
-            state.checklistItems.map((item) => (
+            state.checklist.map((item) => (
                 <div
                 key={item.id}
                 className="flex items-center p-2 rounded-md hover:bg-accent/50"

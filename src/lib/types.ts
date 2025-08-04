@@ -32,5 +32,5 @@ export interface FinancialData {
   transactions: Transaction[];
   bills: Bill[];
   goals: Goal[];
-  checklistItems: ChecklistItem[];
+  checklist: ChecklistItem[];
 }

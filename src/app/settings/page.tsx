@@ -20,9 +20,10 @@ import { useFinance } from "@/contexts/finance-context";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
-    const { resetAllData } = useFinance();
+    const { state, resetAllData, toggleChartVisibility } = useFinance();
     const { setTheme, theme } = useTheme();
     const [isResetting, setIsResetting] = useState(false);
 
@@ -63,6 +64,30 @@ export default function SettingsPage() {
                             <Label htmlFor="system">Padrão do Sistema</Label>
                         </div>
                     </RadioGroup>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Preferências da Tela Inicial</CardTitle>
+                     <CardDescription>
+                        Customize os elementos da sua dashboard.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between space-x-2">
+                       <Label htmlFor="chart-visibility" className="flex flex-col space-y-1">
+                           <span>Exibir Gráfico de Visão Geral</span>
+                           <span className="font-normal leading-snug text-muted-foreground">
+                               Mostrar ou ocultar o gráfico de receitas e despesas.
+                           </span>
+                       </Label>
+                       <Switch
+                           id="chart-visibility"
+                           checked={state.showChart}
+                           onCheckedChange={toggleChartVisibility}
+                       />
+                    </div>
                 </CardContent>
             </Card>
             

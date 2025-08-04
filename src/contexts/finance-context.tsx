@@ -18,13 +18,15 @@ type Action =
   | { type: 'ADD_TO_GOAL'; payload: { goalId: string; amount: number } }
   | { type: 'ADD_CHECKLIST_ITEM'; payload: Omit<ChecklistItem, 'id' | 'completed'> }
   | { type: 'UPDATE_CHECKLIST_ITEM'; payload: ChecklistItem }
-  | { type: 'DELETE_CHECKLIST_ITEM'; payload: string };
+  | { type: 'DELETE_CHECKLIST_ITEM'; payload: string }
+  | { type: 'TOGGLE_CHART_VISIBILITY' };
 
 const initialState: FinancialData = {
   transactions: [],
   bills: [],
   goals: [],
   checklist: [],
+  showChart: true,
 };
 
 function financeReducer(state: FinancialData, action: Action): FinancialData {
@@ -86,6 +88,11 @@ function financeReducer(state: FinancialData, action: Action): FinancialData {
         ...state,
         checklist: state.checklist.filter(item => item.id !== action.payload),
       };
+    case 'TOGGLE_CHART_VISIBILITY':
+        return {
+            ...state,
+            showChart: !state.showChart,
+        };
     default:
       return state;
   }
@@ -102,6 +109,7 @@ interface FinanceContextProps {
   addChecklistItem: (item: Omit<ChecklistItem, 'id' | 'completed'>) => void;
   updateChecklistItem: (item: ChecklistItem) => void;
   deleteChecklistItem: (itemId: string) => void;
+  toggleChartVisibility: () => void;
   resetAllData: () => void;
 }
 
@@ -139,6 +147,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
             bills: data.bills || [],
             goals: data.goals || [],
             checklist: data.checklist || [],
+            showChart: data.showChart === undefined ? true : data.showChart,
           };
           dispatch({ type: 'SET_STATE', payload: initialStateSafe });
         } else {
@@ -199,6 +208,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const deleteChecklistItem = (itemId: string) => {
     dispatch({ type: 'DELETE_CHECKLIST_ITEM', payload: itemId });
   };
+  
+  const toggleChartVisibility = () => {
+    dispatch({ type: 'TOGGLE_CHART_VISIBILITY' });
+  };
 
   const resetAllData = async () => {
     if (!user || isGuest) return;
@@ -218,6 +231,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       addChecklistItem,
       updateChecklistItem,
       deleteChecklistItem,
+      toggleChartVisibility,
       resetAllData
     }}>
       {children}

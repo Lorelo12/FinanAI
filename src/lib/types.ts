@@ -1,3 +1,4 @@
+
 export interface Transaction {
   id: string;
   type: 'income' | 'expense';
@@ -33,4 +34,5 @@ export interface FinancialData {
   bills: Bill[];
   goals: Goal[];
   checklist: ChecklistItem[];
+  showChart: boolean;
 }

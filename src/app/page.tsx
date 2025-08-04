@@ -9,6 +9,7 @@ import { DistributionChart } from '@/components/features/dashboard/distribution-
 import { RecentTransactions } from '@/components/features/dashboard/recent-transactions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { state } = useFinance();
@@ -39,7 +40,7 @@ export default function DashboardPage() {
         <SummaryCards income={income} expenses={expenses} balance={balance} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className={cn("lg:col-span-7", state.showChart && "col-span-4")}>
           <CardHeader>
             <CardTitle>Adicionar com Mágica</CardTitle>
           </CardHeader>
@@ -47,14 +48,16 @@ export default function DashboardPage() {
             <AITransactionForm />
           </CardContent>
         </Card>
-        <Card className="col-span-4 lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Visão Geral</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DistributionChart income={income} expenses={expenses} />
-          </CardContent>
-        </Card>
+        {state.showChart && (
+            <Card className="col-span-4 lg:col-span-3">
+            <CardHeader>
+                <CardTitle>Visão Geral</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <DistributionChart income={income} expenses={expenses} />
+            </CardContent>
+            </Card>
+        )}
       </div>
        <Card>
         <CardHeader>

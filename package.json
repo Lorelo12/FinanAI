@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "android:init": "rm -rf android && npm run build && npx cap add android",
     "android:sync": "npm run build && npx cap sync android"
   },
   "dependencies": {

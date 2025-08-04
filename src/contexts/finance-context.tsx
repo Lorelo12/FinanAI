@@ -117,6 +117,7 @@ const FinanceContext = createContext<FinanceContextProps | undefined>(undefined)
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(financeReducer, initialState);
   const [financeLoading, setFinanceLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { user, isGuest, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
@@ -151,10 +152,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           };
           dispatch({ type: 'SET_STATE', payload: initialStateSafe });
         } else {
+          // If the document doesn't exist (e.g., new user), create it with the initial state.
           setDoc(docRef, initialState);
           dispatch({ type: 'SET_STATE', payload: initialState });
         }
         setFinanceLoading(false);
+        setIsInitialLoad(true); // Mark initial load as complete
       }, (error) => {
         console.error("Error fetching user data:", error);
         toast({
@@ -172,10 +175,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   }, [user, isGuest, toast, authLoading]);
 
   useEffect(() => {
-    if (!financeLoading && state !== initialState) {
-      saveData(state);
-    }
-  }, [state, financeLoading, saveData]);
+    if (financeLoading || isInitialLoad) {
+        if (!financeLoading) setIsInitialLoad(false);
+        return;
+    };
+    saveData(state);
+  }, [state, financeLoading, isInitialLoad, saveData]);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
@@ -216,7 +221,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const resetAllData = async () => {
     if (authLoading || !user || isGuest) return;
     dispatch({ type: 'RESET_STATE' });
-    // This will trigger the useEffect to save the empty state
+    await saveData(initialState);
   }
 
   return (

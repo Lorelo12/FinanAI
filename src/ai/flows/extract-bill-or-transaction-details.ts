@@ -24,8 +24,8 @@ export type ExtractBillOrTransactionDetailsInput = z.infer<
 
 const ExtractBillOrTransactionDetailsOutputSchema = z.object({
   type: z
-    .enum(['transaction', 'bill'])
-    .describe('The type of entry: a one-time transaction or a recurring bill.'),
+    .enum(['transaction', 'bill', 'invalid'])
+    .describe('The type of entry: a one-time transaction, a recurring bill, or an invalid entry.'),
   amount: z
     .number()
     .optional()
@@ -38,7 +38,7 @@ const ExtractBillOrTransactionDetailsOutputSchema = z.object({
     .describe(
       'The transaction date in ISO format (YYYY-MM-DD). Use today if not mentioned. Not applicable for bills.'
     ),
-  description: z.string().describe('A short description.'),
+  description: z.string().optional().describe('A short description.'),
   category: z
     .string()
     .optional()
@@ -85,6 +85,7 @@ const prompt = ai.definePrompt({
     - 'date': The date it occurred (use today's date if not specified, format YYYY-MM-DD).
     - 'category': A suitable category (e.g., food, salary, bills).
     - 'transactionType': Classify as 'income' or 'expense'.
+- If the text does not appear to be a valid transaction or bill (e.g., is just a greeting or random words), set the type to "invalid".
 
 Analyze the following text: {{{text}}}
 

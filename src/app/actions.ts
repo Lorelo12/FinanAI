@@ -11,23 +11,27 @@ export async function addFromText(text: string): Promise<{ success: boolean; dat
     return { success: false, error: 'Input text cannot be empty.' };
   }
   
-  // Split by common delimiters like comma, period, 'and' (e), semicolon, or newline.
-  const phrases = text.split(/[,.e;\n]/).filter(t => t.trim().length > 2);
+  // Split by common delimiters like comma, semicolon, or newline.
+  const phrases = text.split(/[,;\n]/).filter(t => t.trim().length > 2);
 
   if (phrases.length === 0) {
-    return { success: false, error: 'No valid phrases found.' };
+    // If splitting doesn't yield multiple phrases, treat the whole text as one.
+    phrases.push(text);
   }
 
   try {
     const promises = phrases.map(async (phrase) => {
+      if (phrase.trim().length < 3) return null; // Ignore very short phrases
       const details = await extractBillOrTransactionDetails({ text: phrase });
       return details;
     });
 
-    const results = await Promise.all(promises);
+    const results = (await Promise.all(promises)).filter(Boolean) as AIResponseData[];
     
-    // For now, we assume revalidating everything is fine.
-    // In a more complex app, we might want to be more specific.
+    if (results.length === 0) {
+      return { success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' };
+    }
+
     revalidatePath('/'); 
     revalidatePath('/bills');
 

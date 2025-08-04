@@ -19,7 +19,9 @@ export function AITransactionForm() {
   const processResult = (result: AIResponseData) => {
     if (result.type === 'transaction') {
       if (!result.amount || !result.description || !result.category || !result.date || !result.transactionType) {
-        throw new Error(`Dados incompletos para transação: ${result.description}`);
+        // Silently ignore incomplete data for now, or you can decide to show a specific error
+        console.warn(`Dados incompletos para transação, pulando: ${result.description}`);
+        return;
       }
       addTransaction({
           type: result.transactionType,
@@ -30,7 +32,9 @@ export function AITransactionForm() {
       });
     } else if (result.type === 'bill') {
         if (!result.description || !result.dueDate || !result.amount) {
-            throw new Error(`Dados incompletos para conta: ${result.description}. É preciso informar o valor.`);
+           // Silently ignore incomplete data for now
+           console.warn(`Dados incompletos para conta, pulando: ${result.description}`);
+           return;
         }
         addBill({
             description: result.description,
@@ -38,6 +42,7 @@ export function AITransactionForm() {
             dueDate: result.dueDate,
         });
     }
+    // 'invalid' type is ignored by default
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +53,7 @@ export function AITransactionForm() {
     const result = await addFromText(text);
     setIsLoading(false);
 
-    if (result.success && result.data) {
+    if (result.success && result.data && result.data.length > 0) {
       try {
         result.data.forEach(processResult);
         toast({

@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { FinanceProvider } from '@/contexts/finance-context';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from 'next-themes';
+import { ClientOnly } from '@/components/layout/client-only';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -12,7 +13,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <AuthProvider>
         <FinanceProvider>
           {children}
-          <Toaster />
+          <ClientOnly>
+            <Toaster />
+          </ClientOnly>
         </FinanceProvider>
       </AuthProvider>
     </ThemeProvider>

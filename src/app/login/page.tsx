@@ -34,13 +34,11 @@ export default function LoginPage() {
     if (signInWithEmailAndPassword) {
       await signInWithEmailAndPassword(email, password);
     }
-    // Don't set isSubmitting to false here, as the context change will re-render or navigate away
   };
   
   const handleGoogleLogin = async () => {
       setIsSubmitting(true);
       await signInWithGoogle();
-      // Don't set isSubmitting to false here
   }
 
   const handleGuestLogin = () => {

@@ -39,7 +39,7 @@ export function BillsList() {
 
     return state.bills.map(bill => {
       const dueDateThisMonth = new Date(now.getFullYear(), now.getMonth(), bill.dueDate);
-      const isPaid = bill.paidForMonths.includes(currentMonthStr);
+      const isPaid = bill.paidForMonths?.includes(currentMonthStr);
       
       let status: 'paid' | 'overdue' | 'upcoming';
       if (isPaid) {
@@ -49,7 +49,7 @@ export function BillsList() {
       } else {
         status = 'upcoming';
       }
-      return { ...bill, status };
+      return { ...bill, status, isPaid };
     }).sort((a,b) => a.dueDate - b.dueDate);
   }, [state.bills, currentDate]);
 
@@ -66,7 +66,6 @@ export function BillsList() {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {billsWithStatus.map((bill) => {
         const currentMonthStr = format(currentDate, 'yyyy-MM');
-        const isPaid = bill.status === 'paid';
         return (
           <Card key={bill.id}>
             <CardHeader>
@@ -93,11 +92,11 @@ export function BillsList() {
             <CardFooter>
               <Button 
                 onClick={() => handlePayBill(bill.id, currentMonthStr)} 
-                disabled={isPaid}
+                disabled={bill.isPaid}
                 className="w-full"
-                variant={isPaid ? 'secondary' : 'default'}
+                variant={bill.isPaid ? 'secondary' : 'default'}
               >
-                {isPaid ? "Pagamento Confirmado" : "Confirmar Pagamento"}
+                {bill.isPaid ? "Pagamento Confirmado" : "Confirmar Pagamento"}
               </Button>
             </CardFooter>
           </Card>

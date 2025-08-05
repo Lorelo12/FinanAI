@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useReducer, useState, type ReactN
 import type { FinancialData, Transaction, Bill, Goal, ChecklistItem } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type Action =
@@ -134,22 +134,23 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       });
     }
   }, [user, isGuest, toast]);
-  
-   useEffect(() => {
+
+  useEffect(() => {
     if (authLoading) {
-      return; 
+      return;
     }
-  
+
     if (isGuest) {
       dispatch({ type: 'RESET_STATE' });
       setFinanceLoading(false);
       setHasLoadedInitialData(true);
       return;
     }
-  
-    if (user) {
+
+    if (user && !isGuest) {
       setFinanceLoading(true);
       const docRef = doc(db, 'users', user.uid);
+
       const unsubscribe = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -162,7 +163,8 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           };
           dispatch({ type: 'SET_STATE', payload: loadedState });
         } else {
-          // New user, set initial state but don't save yet, let the first user action trigger save.
+           // New user, create the document with initial state
+          saveData(initialState);
           dispatch({ type: 'SET_STATE', payload: initialState });
         }
         setFinanceLoading(false);
@@ -176,7 +178,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         });
         setFinanceLoading(false);
       });
-      
+
       return () => unsubscribe();
     } else {
       // User is logged out and not a guest
@@ -184,12 +186,12 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       setFinanceLoading(false);
       setHasLoadedInitialData(false);
     }
-  }, [user, isGuest, authLoading, toast]);
+  }, [user, isGuest, authLoading, toast, saveData]);
 
 
   useEffect(() => {
     // Only save data if it's not the initial load from Firestore
-    if (hasLoadedInitialData && !financeLoading && (user && !isGuest)) {
+    if (hasLoadedInitialData && !financeLoading && user && !isGuest) {
        saveData(state);
     }
   }, [state, hasLoadedInitialData, financeLoading, user, isGuest, saveData]);

@@ -52,7 +52,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
        <div className="block md:hidden">
           <TopBar />
         </div>
-      <main className={cn("flex-1 pb-16 pt-16 md:pt-0")}>
+      <main className={cn("flex-1 pb-16 md:pb-0")}>
         {children}
       </main>
       <div className="block md:hidden">

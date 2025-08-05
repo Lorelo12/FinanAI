@@ -62,6 +62,17 @@ export function BillsList() {
       return <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>; // Return empty grid to avoid layout shift
   }
 
+  const getBadgeVariant = (status: 'paid' | 'overdue' | 'upcoming'): 'default' | 'destructive' | 'secondary' => {
+    switch (status) {
+      case 'paid':
+        return 'default';
+      case 'overdue':
+        return 'destructive';
+      case 'upcoming':
+        return 'secondary';
+    }
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {billsWithStatus.map((bill) => {
@@ -71,14 +82,7 @@ export function BillsList() {
             <CardHeader>
               <div className="flex justify-between items-start">
                   <CardTitle>{bill.description}</CardTitle>
-                  <Badge className={cn({
-                    'bg-green-100 text-green-800 border-green-200 hover:bg-green-100': bill.status === 'paid',
-                    'bg-red-100 text-red-800 border-red-200 hover:bg-red-100': bill.status === 'overdue',
-                    'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100': bill.status === 'upcoming',
-                    'dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': bill.status === 'paid',
-                    'dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': bill.status === 'overdue',
-                    'dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': bill.status === 'upcoming',
-                  })}>
+                  <Badge variant={getBadgeVariant(bill.status)}>
                     {bill.status === 'paid' && 'Pago'}
                     {bill.status === 'overdue' && 'Vencido'}
                     {bill.status === 'upcoming' && 'A Vencer'}

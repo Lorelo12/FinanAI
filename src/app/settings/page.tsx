@@ -22,11 +22,13 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth-context";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function SettingsPage() {
     const { state, resetAllData, toggleChartVisibility } = useFinance();
     const { setTheme, theme } = useTheme();
-    const { logout, user, isGuest } = useAuth();
+    const { logout, isGuest } = useAuth();
+    const { language, setLanguage, translations } = useLanguage();
     const [isResetting, setIsResetting] = useState(false);
 
     const handleReset = async () => {
@@ -42,7 +44,7 @@ export default function SettingsPage() {
 
     return (
         <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
-            <h2 className="text-3xl font-bold tracking-tight">Configurações</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{translations.settings}</h2>
 
             <div className="space-y-8">
                 {/* Seção da Conta */}
@@ -67,13 +69,13 @@ export default function SettingsPage() {
 
                 {/* Seção de Aparência */}
                 <div className="space-y-4">
-                    <h3 className="text-xl font-semibold">Aparência</h3>
+                    <h3 className="text-xl font-semibold">{translations.appearance}</h3>
                     <Separator />
                     <div className="flex items-center justify-between">
                         <Label className="flex flex-col space-y-1">
-                            <span>Tema</span>
+                            <span>{translations.theme}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                                Selecione o tema de sua preferência.
+                                {translations.select_theme}
                             </span>
                         </Label>
                          <RadioGroup value={theme} onValueChange={setTheme} className="flex items-center">
@@ -88,6 +90,25 @@ export default function SettingsPage() {
                              <Label htmlFor="system" className="flex items-center gap-2 border rounded-md p-2 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
                                 <RadioGroupItem value="system" id="system" />
                                 <span>Sistema</span>
+                            </Label>
+                        </RadioGroup>
+                    </div>
+                    <Separator />
+                     <div className="flex items-center justify-between">
+                        <Label className="flex flex-col space-y-1">
+                            <span>{translations.language}</span>
+                            <span className="font-normal leading-snug text-muted-foreground">
+                                {translations.select_language}
+                            </span>
+                        </Label>
+                         <RadioGroup value={language} onValueChange={(value) => setLanguage(value as 'pt' | 'en')} className="flex items-center">
+                            <Label htmlFor="pt" className="flex items-center gap-2 border rounded-md p-2 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
+                                <RadioGroupItem value="pt" id="pt" />
+                                <span>Português</span>
+                            </Label>
+                            <Label htmlFor="en" className="flex items-center gap-2 border rounded-md p-2 cursor-pointer hover:bg-accent has-[input:checked]:bg-accent">
+                                <RadioGroupItem value="en" id="en" />
+                                <span>Inglês</span>
                             </Label>
                         </RadioGroup>
                     </div>

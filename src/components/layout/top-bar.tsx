@@ -35,7 +35,7 @@ export function TopBar() {
   const pageTitle = currentPage ? currentPage.label : "FinanAI";
   
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-16 px-4 bg-background border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-16 px-4 bg-background border-b md:hidden">
       <div className="flex items-center gap-2">
          <h1 className="text-lg font-bold">{pageTitle}</h1>
       </div>

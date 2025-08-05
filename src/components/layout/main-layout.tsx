@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { TopBar } from "./top-bar";
 
 const AUTH_ROUTES = ['/login', '/signup'];
 
@@ -48,10 +49,15 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className={cn("flex-1 pb-16")}>
+       <div className="block md:hidden">
+          <TopBar />
+        </div>
+      <main className={cn("flex-1 pb-16 pt-16 md:pt-0")}>
         {children}
       </main>
-      <BottomNav />
+      <div className="block md:hidden">
+        <BottomNav />
+      </div>
     </div>
   );
 }

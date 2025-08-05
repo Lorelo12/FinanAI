@@ -1,8 +1,5 @@
 
-"use server";
-
-import { revalidatePath } from 'next/cache';
-import { extractBillOrTransactionDetails, ExtractBillOrTransactionDetailsOutput } from '@/ai/flows/extract-bill-or-transaction-details';
+import { ExtractBillOrTransactionDetailsOutput } from '@/ai/flows/extract-bill-or-transaction-details';
 
 export type AIResponseData = ExtractBillOrTransactionDetailsOutput['entries'];
 
@@ -12,26 +9,20 @@ export async function addFromText(text: string): Promise<{ success: boolean; dat
   }
 
   try {
-    const details = await extractBillOrTransactionDetails({ text });
-    
-    if (!details.entries || details.entries.length === 0) {
-      return { success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' };
-    }
+    const response = await fetch('/api/add-from-text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
+    });
 
-    const validEntries = details.entries.filter(entry => entry.type !== 'invalid');
-
-    if (validEntries.length === 0) {
-        return { success: false, error: 'Nenhuma transação ou conta válida foi encontrada no texto.' };
-    }
-
-    revalidatePath('/'); 
-    revalidatePath('/bills');
-
-    return { success: true, data: validEntries };
+    const result = await response.json();
+    return result;
 
   } catch (error) {
-    console.error("Error in addFromText server action:", error);
-    let errorMessage = 'Falha ao processar o texto com a IA.';
+    console.error("Error calling add-from-text API:", error);
+    let errorMessage = 'Falha ao se comunicar com a API.';
     if (error instanceof Error) {
         errorMessage = error.message;
     }

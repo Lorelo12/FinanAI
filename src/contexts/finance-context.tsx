@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useReducer, useState, type ReactN
 import type { FinancialData, Transaction, Bill, Goal, ChecklistItem } from '@/lib/types';
 import { useAuth } from './auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type Action =
@@ -109,7 +109,7 @@ interface FinanceContextProps {
   updateChecklistItem: (item: ChecklistItem) => void;
   deleteChecklistItem: (itemId: string) => void;
   toggleChartVisibility: () => void;
-  resetAllData: () => void;
+  resetAllData: () => Promise<void>;
 }
 
 const FinanceContext = createContext<FinanceContextProps | undefined>(undefined);
@@ -117,13 +117,14 @@ const FinanceContext = createContext<FinanceContextProps | undefined>(undefined)
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(financeReducer, initialState);
   const [financeLoading, setFinanceLoading] = useState(true);
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const { user, isGuest, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
-  const saveData = useCallback(async (data: FinancialData) => {
-    if (authLoading || !user || isGuest) return;
+  const saveData = useCallback(async (dataToSave: FinancialData) => {
+    if (!user || isGuest) return;
     try {
-      await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+      await setDoc(doc(db, 'users', user.uid), dataToSave, { merge: true });
     } catch (error) {
       console.error("Error saving data:", error);
       toast({
@@ -132,29 +133,42 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
     }
-  }, [user, isGuest, toast, authLoading]);
+  }, [user, isGuest, toast]);
 
-   useEffect(() => {
-    if (authLoading) return;
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (isGuest) {
+      dispatch({ type: 'RESET_STATE' });
+      setFinanceLoading(false);
+      setHasLoadedInitialData(true);
+      return;
+    }
+
     if (user && !isGuest) {
       setFinanceLoading(true);
       const docRef = doc(db, 'users', user.uid);
+
       const unsubscribe = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const initialStateSafe: FinancialData = {
+          const loadedState: FinancialData = {
             transactions: data.transactions || [],
             bills: data.bills || [],
             goals: data.goals || [],
             checklist: data.checklist || [],
             showChart: data.showChart === undefined ? true : data.showChart,
           };
-          dispatch({ type: 'SET_STATE', payload: initialStateSafe });
+          dispatch({ type: 'SET_STATE', payload: loadedState });
         } else {
-          setDoc(docRef, initialState);
+           // New user, create the document with initial state
+          saveData(initialState);
           dispatch({ type: 'SET_STATE', payload: initialState });
         }
         setFinanceLoading(false);
+        setHasLoadedInitialData(true);
       }, (error) => {
         console.error("Error fetching user data:", error);
         toast({
@@ -164,18 +178,23 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         });
         setFinanceLoading(false);
       });
+
       return () => unsubscribe();
-    } else if (!user && !authLoading) {
+    } else {
+      // User is logged out and not a guest
       dispatch({ type: 'RESET_STATE' });
       setFinanceLoading(false);
+      setHasLoadedInitialData(false);
     }
-  }, [user, isGuest, toast, authLoading]);
+  }, [user, isGuest, authLoading, toast, saveData]);
+
 
   useEffect(() => {
-    if (!financeLoading && state !== initialState) {
-      saveData(state);
+    // Only save data if it's not the initial load from Firestore
+    if (hasLoadedInitialData && !financeLoading && user && !isGuest) {
+       saveData(state);
     }
-  }, [state, financeLoading, saveData]);
+  }, [state, hasLoadedInitialData, financeLoading, user, isGuest, saveData]);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
@@ -214,9 +233,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   };
 
   const resetAllData = async () => {
-    if (authLoading || !user || isGuest) return;
+    if (!user || isGuest) return;
     dispatch({ type: 'RESET_STATE' });
-    // This will trigger the useEffect to save the empty state
+    // Directly save the initial state to firestore after reset
+    await saveData(initialState);
   }
 
   return (

@@ -74,8 +74,7 @@ export default function SettingsPage() {
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive">
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Resetar
+                                        Reset
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>

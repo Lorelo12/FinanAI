@@ -32,15 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for guest status in localStorage on initial load
-    const guestStatus = localStorage.getItem('isGuest') === 'true';
+    const guestStatus = typeof window !== 'undefined' && localStorage.getItem('isGuest') === 'true';
     setIsGuest(guestStatus);
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         setIsGuest(false);
-        localStorage.removeItem('isGuest');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('isGuest');
+        }
       }
       setLoading(false);
     });

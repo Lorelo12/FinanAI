@@ -13,7 +13,7 @@ import { TopBar } from "./top-bar";
 const AUTH_ROUTES = ['/login', '/signup'];
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading, isGuest } = useAuth();
+  const { loading: authLoading, isGuest } = useAuth();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
 
@@ -37,27 +37,9 @@ export function MainLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // If loading auth state and not a guest, show a full-screen loader
-  // This prevents the main layout from flashing before auth is resolved
-  if (authLoading && !isGuest) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // If no user and not a guest, the AuthProvider will handle the redirect.
-  // We can render a loader here as well to prevent content flash.
-  if (!user && !isGuest) {
-      return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-      );
-  }
-
-  // Render the main app layout
+  // The AuthProvider will handle redirects if necessary.
+  // We render the layout shell immediately to improve perceived performance.
+  // Content inside `children` will be managed by its own loading states.
   return (
     <div className="flex flex-col min-h-screen">
       <TopBar />

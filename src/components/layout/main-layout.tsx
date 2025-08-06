@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BottomNav } from "./bottom-nav";
@@ -20,13 +21,25 @@ export function MainLayout({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+  // Render nothing on the server to avoid hydration mismatches
   if (!isClient) {
     return null;
   }
 
-  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  // If on an auth route, just render the children without the main layout
+  if (isAuthRoute) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        {authLoading ? <Loader2 className="h-16 w-16 animate-spin text-primary" /> : children}
+      </div>
+    );
+  }
 
-  if (authLoading) {
+  // If loading auth state and not a guest, show a full-screen loader
+  // This prevents the main layout from flashing before auth is resolved
+  if (authLoading && !isGuest) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -34,10 +47,8 @@ export function MainLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (isAuthRoute) {
-    return <div className="min-h-screen flex items-center justify-center bg-background p-4">{children}</div>;
-  }
-  
+  // If no user and not a guest, the AuthProvider will handle the redirect.
+  // We can render a loader here as well to prevent content flash.
   if (!user && !isGuest) {
       return (
         <div className="flex h-screen items-center justify-center">
@@ -46,13 +57,16 @@ export function MainLayout({ children }: { children: ReactNode }) {
       );
   }
 
+  // Render the main app layout
   return (
     <div className="flex flex-col min-h-screen">
-       <TopBar />
+      <TopBar />
       <main className={cn("flex-1 pb-16 md:pb-0")}>
         {children}
       </main>
-      <BottomNav />
+      <div className="md:hidden">
+        <BottomNav />
+      </div>
     </div>
   );
 }

@@ -32,10 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for guest status in localStorage on initial load
+    const guestStatus = localStorage.getItem('isGuest') === 'true';
+    setIsGuest(guestStatus);
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         setIsGuest(false);
+        localStorage.removeItem('isGuest');
       }
       setLoading(false);
     });
@@ -48,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
     // If user is logged in, and on an auth route, redirect to home
-    if (user && isAuthRoute) {
+    if ((user || isGuest) && isAuthRoute) {
         router.push('/');
         return;
     }
@@ -60,6 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
   }, [user, isGuest, loading, pathname, router]);
+
+  const handleSetIsGuest = (guest: boolean) => {
+    setIsGuest(guest);
+    if (guest) {
+        localStorage.setItem('isGuest', 'true');
+    } else {
+        localStorage.removeItem('isGuest');
+    }
+  }
 
   const signInWithGoogle = async () => {
     if (loading) return; 
@@ -118,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      setIsGuest(false);
+      handleSetIsGuest(false);
       router.push('/login');
     } catch (error: any) {
       console.error("Error signing out: ", error);
@@ -130,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const value = { user, loading, isGuest, setIsGuest, signInWithGoogle, signInWithEmailAndPassword, signUpWithEmailAndPassword, logout };
+  const value = { user, loading, isGuest, setIsGuest: handleSetIsGuest, signInWithGoogle, signInWithEmailAndPassword, signUpWithEmailAndPassword, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

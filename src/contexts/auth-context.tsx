@@ -52,15 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-    // If user is logged in, and on an auth route, redirect to home
+    // If user is logged in or is a guest, and on an auth route, redirect to home
     if ((user || isGuest) && isAuthRoute) {
-        router.push('/');
+        router.replace('/');
         return;
     }
     
     // If no user and not a guest, and not on an auth route, redirect to login
     if (!user && !isGuest && !isAuthRoute) {
-        router.push('/login');
+        router.replace('/login');
         return;
     }
 

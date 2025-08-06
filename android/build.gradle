@@ -1,19 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext {
-        // SDK and tools
-        compileSdkVersion = 34
-        minSdkVersion = 22
-        targetSdkVersion = 34
-
-        // App dependencies
-        appCompatVersion = '1.6.1'
-        coreVersion = '1.9.0'
-        constraintLayoutVersion = '2.1.4'
-        junitVersion = '4.13.2'
-        espressoVersion = '3.5.0'
-        androidxJunitVersion = '1.1.5'
-    }
     repositories {
         google()
         mavenCentral()

@@ -16,18 +16,20 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useFinance } from "@/contexts/finance-context";
-import { AlertTriangle, Loader2, LogOut } from "lucide-react";
+import { AlertTriangle, Loader2, LogOut, LogIn } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/auth-context";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/language-context";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
     const { state, resetAllData, toggleChartVisibility } = useFinance();
     const { setTheme, theme } = useTheme();
     const { logout, isGuest } = useAuth();
+    const router = useRouter();
     const { language, setLanguage, translations } = useLanguage();
     const [isResetting, setIsResetting] = useState(false);
 
@@ -42,28 +44,36 @@ export default function SettingsPage() {
         }
     }
 
+    const handleAuthAction = () => {
+        if (isGuest) {
+            router.push('/login');
+        } else {
+            logout();
+        }
+    }
+
     return (
         <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
             <h2 className="text-3xl font-bold tracking-tight">{translations.settings}</h2>
 
             <div className="space-y-8">
                 {/* Seção da Conta */}
-                {!isGuest && (
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-semibold">Conta</h3>
-                        <Separator />
-                        <div className="flex items-center justify-between">
-                            <Label className="flex flex-col space-y-1">
-                                <span>Sair da sua conta</span>
-                                <span className="font-normal leading-snug text-muted-foreground">
-                                    Você será redirecionado para a tela de login.
-                                </span>
-                            </Label>
-                            <Button variant="outline" onClick={logout}>
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Sair
-                            </Button>
-                        </div>
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold">Conta</h3>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                        <Label className="flex flex-col space-y-1">
+                            <span>{isGuest ? 'Fazer Login' : 'Sair da sua conta'}</span>
+                            <span className="font-normal leading-snug text-muted-foreground">
+                                {isGuest ? 'Você será redirecionado para a tela de login.' : 'Você será redirecionado para a tela de login.'}
+                            </span>
+                        </Label>
+                        <Button variant="outline" onClick={handleAuthAction}>
+                            {isGuest ? <LogIn className="mr-2 h-4 w-4" /> : <LogOut className="mr-2 h-4 w-4" />}
+                            {isGuest ? 'Login' : 'Sair'}
+                        </Button>
+                    </div>
+                    {!isGuest && (
                         <div className="flex items-center justify-between">
                             <Label className="flex flex-col space-y-1">
                                 <span className="font-medium text-destructive">Resetar Todos os Dados</span>
@@ -71,7 +81,7 @@ export default function SettingsPage() {
                                     Esta ação é permanente e não pode ser desfeita.
                                 </span>
                             </Label>
-                            <AlertDialog>
+                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive">
                                         Reset
@@ -98,8 +108,8 @@ export default function SettingsPage() {
                                 </AlertDialogContent>
                             </AlertDialog>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
                 
                 {/* Seção de Aparência */}
                 <div className="space-y-4">

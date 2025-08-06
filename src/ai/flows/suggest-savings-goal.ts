@@ -46,7 +46,6 @@ Suggest a savings goal, the amount to save, and the reasoning behind the suggest
 Return the information in JSON format.
 `,
   config: {
-    model: 'googleai/gemini-2.5-flash',
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',

@@ -80,7 +80,7 @@ const prompt = ai.definePrompt({
 
 For each item found in the text, create an entry in the 'entries' array with the following rules:
 
-- If the text describes a recurring payment (e.g., "conta de luz todo dia 10", "aluguel vence dia 5", "internet R$99,90 todo dia 15"), set the type to "bill".
+- If the text describes a recurring payment (e.g., "conta de luz todo dia 10", "aluguel vence dia 5", "internet R$99,90 todo dia 15", "conta de água dia 5", "aluguel todo dia 10", "mensalidade vence no dia 25"), set the type to "bill".
   - For bills, you must extract:
     - 'description': The name of the bill (e.g., "conta de luz", "aluguel").
     - 'dueDate': The day of the month it's due.
@@ -99,7 +99,6 @@ Analyze the following text: {{{text}}}
 Return a JSON object containing a list of all extracted entries in the "entries" field.
 `,
   config: {
-    model: 'googleai/gemini-2.5-flash',
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',

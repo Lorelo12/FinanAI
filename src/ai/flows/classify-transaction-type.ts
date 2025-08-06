@@ -46,7 +46,6 @@ const prompt = ai.definePrompt({
   Return only one word.
   `,
   config: {
-    model: 'googleai/gemini-2.5-flash',
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',

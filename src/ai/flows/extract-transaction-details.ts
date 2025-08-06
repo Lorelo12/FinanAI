@@ -56,7 +56,6 @@ const prompt = ai.definePrompt({
   Return the information in JSON format.
   `,
   config: {
-    model: 'googleai/gemini-2.5-flash',
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',

@@ -64,7 +64,6 @@ export default function SettingsPage() {
                                 Sair
                             </Button>
                         </div>
-                        {/* Botão de Reset movido para a seção Conta */}
                         <div className="flex items-center justify-between">
                             <Label className="flex flex-col space-y-1">
                                 <span className="font-medium text-destructive">Resetar Todos os Dados</span>
@@ -102,7 +101,7 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 )}
-                <Separator />
+                
                 {/* Seção de Aparência */}
                 <div className="space-y-4">
                     <h3 className="text-xl font-semibold">{translations.appearance}</h3>
@@ -163,51 +162,6 @@ export default function SettingsPage() {
                         />
                     </div>
                 </div>
-                <Separator />
-                {/* Botão de Reset movido para fora da seção Conta */}{!isGuest && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Label className="flex flex-col space-y-1">
-                                <span className="font-medium text-destructive">Resetar Todos os Dados</span>
-                                <span className="font-normal leading-snug text-muted-foreground">
-                                    Esta ação é permanente e não pode ser desfeita.
-                                </span>
-                            </Label>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive">
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Resetar
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Esta ação não pode ser desfeita. Todos os seus dados, incluindo transações, contas e metas, serão permanentemente apagados.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel disabled={isResetting}>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleReset} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
-                                            {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                            Sim, apagar tudo
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    </div>
-                )}
-
-                {/* Seção de Dados */}
-                {!isGuest && (
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-semibold text-destructive">Zona de Perigo</h3>
-                        <Separator />
-                        {/* O conteúdo desta seção foi movido para a seção "Conta" */}
-                    </div>
-                )}
             </div>
         </div>
     );

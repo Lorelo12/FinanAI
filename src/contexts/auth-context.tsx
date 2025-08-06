@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode} from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, signOut, type User, signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword, createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword, updateProfile, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +45,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     });
+
+    // Handle redirect result from Google SignIn
+    getRedirectResult(auth)
+      .catch((error) => {
+        console.error("Error getting redirect result: ", error);
+        toast({
+          variant: "destructive",
+          title: "Erro de Login",
+          description: error.message || "Não foi possível completar o login com o Google.",
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -83,12 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       await signInWithRedirect(auth, provider);
+      // The user is redirected, so the rest of the code will not execute until they return.
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({
         variant: "destructive",
         title: "Erro de Login",
-        description: error.message || "Não foi possível fazer login com o Google.",
+        description: error.message || "Não foi possível iniciar o login com o Google.",
       });
       setLoading(false);
     }
@@ -106,7 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Erro de Login",
         description: "Email ou senha inválidos.",
       });
-      setLoading(false);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -125,7 +143,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Erro no Cadastro",
         description: error.message || "Não foi possível criar a conta.",
       });
-      setLoading(false);
+    } finally {
+        setLoading(false);
     }
   }
 

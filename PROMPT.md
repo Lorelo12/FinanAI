@@ -1,4 +1,3 @@
-
 # Prompt Detalhado do Projeto: FinanAI
 
 ## Visão Geral do Projeto
@@ -58,8 +57,8 @@ O projeto segue uma estrutura organizada, separando lógica, componentes de UI, 
 ### 3.2. Dashboard Principal (`/`)
 - **Resumo Financeiro:** Exibe cards com o total de Receitas, Despesas e o Saldo atual.
 - **Adição Inteligente de Transações:** Um campo de texto (`AITransactionForm`) onde o usuário pode descrever suas transações em linguagem natural (ex: "Gastei 50 no almoço e paguei a conta de luz de R$150 que vence dia 10"). A IA processa o texto e adiciona as transações e/ou contas automaticamente.
-- **Gráfico de Distribuição:** Um gráfico de pizza (`DistributionChart`) que visualiza a proporção entre receitas e despesas.
-- **Transações Recentes:** Uma tabela (`RecentTransactions`) que lista as últimas movimentações financeiras.
+- **Gráfico de Distribuição por Categoria:** Um gráfico de pizza (`DistributionChart`) que visualiza as despesas distribuídas por categoria (ex: Alimentação, Transporte, Lazer).
+- **Transações Recentes:** Uma tabela (`RecentTransactions`) que lista as últimas movimentações financeiras, permitindo a filtragem por categoria.
 
 ### 3.3. Contas a Pagar (`/bills`)
 - **Cadastro de Contas Mensais:** O usuário pode adicionar contas recorrentes, especificando descrição, valor e dia do vencimento.
@@ -77,13 +76,14 @@ O projeto segue uma estrutura organizada, separando lógica, componentes de UI, 
 
 ### 3.6. Configurações (`/settings`)
 - **Gerenciamento de Conta:** Botão dinâmico para fazer Login (se for convidado) ou Logout.
+- **Gerenciamento de Categorias:** Interface para criar, visualizar, editar e excluir categorias de despesas.
 - **Reset de Dados:** Para usuários logados, um botão permite apagar todos os dados financeiros associados à sua conta (ação destrutiva com confirmação).
 - **Aparência:** Opções para alterar o tema (Claro, Escuro, Sistema) e o idioma (Português, Inglês).
 - **Customização da UI:** Opção para mostrar ou ocultar o gráfico na tela inicial.
 
 ### 3.7. Funcionalidade de IA (Genkit)
 - **Extração de Entidades:** O fluxo `extract-bill-or-transaction-details.ts` é o cérebro por trás da adição inteligente.
-- **Prompt da IA:** O prompt instrui o modelo a analisar um texto em português e identificar se cada item é uma transação única ou uma conta recorrente, extraindo os respectivos detalhes (valor, descrição, data/vencimento, categoria, etc.).
+- **Prompt da IA:** O prompt instrui o modelo a analisar um texto em português e identificar se cada item é uma transação única ou uma conta recorrente, extraindo os respectivos detalhes (valor, descrição, data/vencimento, categoria). A categoria extraída deve ser mapeada para uma das categorias definidas pelo usuário.
 - **Tratamento de Múltiplos Itens:** A IA é capaz de processar múltiplos itens descritos em uma única frase.
 
 ---
@@ -95,6 +95,7 @@ O projeto segue uma estrutura organizada, separando lógica, componentes de UI, 
 - **Feedback ao Usuário:** Usa toasts para notificar sobre o sucesso ou falha de operações (ex: "Transação adicionada com sucesso").
 - **Estados de Carregamento:** Exibe indicadores de carregamento (`Loader`) para evitar a percepção de lentidão enquanto os dados são buscados do Firebase.
 - **Componentes Consistentes:** Aderência ao sistema de design fornecido pelo ShadCN/UI para uma aparência coesa e profissional.
+- **Acessibilidade (a11y):** Garantir que a aplicação siga as diretrizes do WCAG, incluindo navegação por teclado, uso correto de atributos ARIA para leitores de tela e contraste de cores adequado.
 
 ---
 
@@ -106,3 +107,11 @@ O projeto segue uma estrutura organizada, separando lógica, componentes de UI, 
   1. `npm run sync:android`: Executa o build, exporta o site estático e sincroniza com o projeto Android.
   2. Abrir a pasta `android` no Android Studio para compilar e gerar o APK.
 - **Deploy no Firebase App Hosting:** O `apphosting.yaml` está configurado para um deploy simples na infraestrutura do Firebase.
+
+---
+
+## 6. Estratégia de Testes
+
+- **Testes Unitários (Jest/Vitest):** Para funções utilitárias (`/lib`), hooks (`/hooks`) e componentes de UI isolados para garantir que funcionem como esperado.
+- **Testes de Integração (React Testing Library):** Para fluxos que envolvem múltiplos componentes e interações com os contextos (ex: adicionar uma transação e verificar se o `finance-context` é atualizado).
+- **Testes End-to-End (Cypress/Playwright):** Para validar os fluxos críticos do usuário de ponta a ponta (ex: "login > adição de transação por IA > verificação no gráfico e na lista > logout").

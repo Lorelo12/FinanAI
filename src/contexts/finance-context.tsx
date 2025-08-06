@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useEffect, useReducer, useState, type ReactNode, useCallback } from 'react';
@@ -122,7 +123,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const saveData = useCallback(async (dataToSave: FinancialData) => {
-    if (!user || isGuest) return;
+    if (isGuest || !user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), dataToSave, { merge: true });
     } catch (error) {
@@ -136,9 +137,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   }, [user, isGuest, toast]);
 
   useEffect(() => {
-    if (authLoading) {
-      return;
-    }
+    if (authLoading) return;
 
     if (isGuest) {
       dispatch({ type: 'RESET_STATE' });
@@ -147,51 +146,70 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (user && !isGuest) {
-      setFinanceLoading(true);
+    if (user) {
       const docRef = doc(db, 'users', user.uid);
+      
+      const setupFirestoreListener = async () => {
+          setFinanceLoading(true);
+          try {
+              const docSnap = await getDoc(docRef);
+              if (!docSnap.exists()) {
+                  // New user, create the document with initial state
+                  await saveData(initialState);
+              }
+          } catch (error) {
+              console.error("Error checking/creating user doc:", error);
+              toast({
+                  title: "Erro de Inicialização",
+                  description: "Não foi possível configurar sua conta.",
+                  variant: "destructive",
+              });
+          }
 
-      const unsubscribe = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const loadedState: FinancialData = {
-            transactions: data.transactions || [],
-            bills: data.bills || [],
-            goals: data.goals || [],
-            checklist: data.checklist || [],
-            showChart: data.showChart === undefined ? true : data.showChart,
-          };
-          dispatch({ type: 'SET_STATE', payload: loadedState });
-        } else {
-           // New user, create the document with initial state
-          saveData(initialState);
-          dispatch({ type: 'SET_STATE', payload: initialState });
-        }
-        setFinanceLoading(false);
-        setHasLoadedInitialData(true);
-      }, (error) => {
-        console.error("Error fetching user data:", error);
-        toast({
-          title: "Erro de Carregamento",
-          description: "Não foi possível carregar seus dados financeiros.",
-          variant: "destructive",
-        });
-        setFinanceLoading(false);
-      });
+          const unsubscribe = onSnapshot(docRef, (docSnap) => {
+              if (docSnap.exists()) {
+                  const data = docSnap.data();
+                  const loadedState: FinancialData = {
+                      transactions: data.transactions || [],
+                      bills: data.bills || [],
+                      goals: data.goals || [],
+                      checklist: data.checklist || [],
+                      showChart: data.showChart === undefined ? true : data.showChart,
+                  };
+                  dispatch({ type: 'SET_STATE', payload: loadedState });
+              }
+              if (!hasLoadedInitialData) {
+                  setHasLoadedInitialData(true);
+              }
+              setFinanceLoading(false);
+          }, (error) => {
+              console.error("Error with Firestore snapshot:", error);
+              toast({
+                  title: "Erro de Sincronização",
+                  description: "Não foi possível carregar seus dados em tempo real.",
+                  variant: "destructive",
+              });
+              setFinanceLoading(false);
+          });
+          return unsubscribe;
+      };
 
-      return () => unsubscribe();
+      const unsubscribePromise = setupFirestoreListener();
+      
+      return () => {
+          unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe());
+      };
     } else {
       // User is logged out and not a guest
       dispatch({ type: 'RESET_STATE' });
-      setFinanceLoading(false);
       setHasLoadedInitialData(false);
+      setFinanceLoading(false);
     }
-  }, [user, isGuest, authLoading, toast, saveData]);
+  }, [user, isGuest, authLoading, toast, saveData, hasLoadedInitialData]);
 
 
   useEffect(() => {
-    // Only save data if it's not the initial load from Firestore
-    if (hasLoadedInitialData && !financeLoading && user && !isGuest) {
+    if (hasLoadedInitialData && !financeLoading && !isGuest && user) {
        saveData(state);
     }
   }, [state, hasLoadedInitialData, financeLoading, user, isGuest, saveData]);
@@ -235,14 +253,13 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const resetAllData = async () => {
     if (!user || isGuest) return;
     dispatch({ type: 'RESET_STATE' });
-    // Directly save the initial state to firestore after reset
     await saveData(initialState);
   }
 
   return (
     <FinanceContext.Provider value={{
       state,
-      loading: financeLoading || authLoading,
+      loading: financeLoading,
       addTransaction,
       addBill,
       payBill,

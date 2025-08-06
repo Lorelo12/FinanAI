@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useFinance } from "@/contexts/finance-context";
-import { AlertTriangle, Loader2, LogOut, LogIn } from "lucide-react";
+import { Loader2, LogOut, LogIn } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
@@ -73,6 +73,7 @@ export default function SettingsPage() {
                             {isGuest ? 'Login' : 'Sair'}
                         </Button>
                     </div>
+
                     {!isGuest && (
                         <div className="flex items-center justify-between">
                             <Label className="flex flex-col space-y-1">
